@@ -1,0 +1,10 @@
+// J-Link Commander Script for flashing RMA-MotorStack
+device STM32F427II
+si SWD
+speed 4000
+connect
+h
+loadfile "Output\\RMA-MotorStack.hex"
+r
+go
+exit

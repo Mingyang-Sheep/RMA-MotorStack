@@ -1,0 +1,58 @@
+{
+    "files.associations": {
+        "*.uvprojx": "xml",
+        "*.uvoptx": "xml",
+        "*.ioc": "json",
+        "*.s": "arm",
+        "bsp_imu.h": "c",
+        "bsp_uart.h": "c",
+        "bsp_can.h": "c",
+        "bsp_oled.h": "c",
+        "bsp_sd.h": "c",
+        "stm32f4xx_hal_conf.h": "c",
+        "main.h": "c",
+        "gpio.h": "c",
+        "spi.h": "c",
+        "usart.h": "c",
+        "tim.h": "c",
+        "can.h": "c",
+        "adc.h": "c",
+        "dma.h": "c",
+        "sdio.h": "c",
+        "fatfs.h": "c",
+        "ffconf.h": "c",
+        "usb_device.h": "c",
+        "usbd_conf.h": "c",
+        "usbd_desc.h": "c",
+        "usbd_cdc_if.h": "c",
+        "mytype.h": "c",
+        "ist8310_reg.h": "c",
+        "mpu6500_reg.h": "c",
+        "oledfont.h": "c",
+        "sd_card.h": "c"
+    },
+    "files.exclude": {
+        "Drivers/CMSIS/DSP_Lib": false
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/Core/Inc",
+        "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
+        "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
+        "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+        "${workspaceFolder}/Drivers/CMSIS/Include",
+        "${workspaceFolder}/BSP",
+        "${workspaceFolder}/App",
+        "${workspaceFolder}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc",
+        "${workspaceFolder}/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc",
+        "${workspaceFolder}/Middlewares/ST/Third_Party/FatFs/src"
+    ],
+    "C_Cpp.default.defines": [
+        "USE_HAL_DRIVER",
+        "STM32F427xx"
+    ],
+    "C_Cpp.default.compilerPath": "",
+    "C_Cpp.default.intelliSenseMode": "armcc",
+    "C_Cpp.default.cStandard": "c99",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+}

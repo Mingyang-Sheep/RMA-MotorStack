@@ -1,0 +1,148 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build (Keil MDK)",
+            "type": "shell",
+            "command": "D:/keil/UV4/UV4.exe",
+            "args": [
+                "-b",
+                "${workspaceFolder}\\MDK-ARM\\RMA-MotorStack.uvprojx",
+                "-j0",
+                "-o",
+                "${workspaceFolder}\\MDK-ARM\\build.log"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                {
+                    "owner": "cpp",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.+)\\((\\d+)\\):\\s+(warning|error):\\s+(.+)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "message": 4
+                    }
+                }
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "rebuild (Keil MDK)",
+            "type": "shell",
+            "command": "D:/keil/UV4/UV4.exe",
+            "args": [
+                "-c",
+                "${workspaceFolder}\\MDK-ARM\\RMA-MotorStack.uvprojx",
+                "-j0",
+                "-o",
+                "${workspaceFolder}\\MDK-ARM\\rebuild.log"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                {
+                    "owner": "cpp",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.+)\\((\\d+)\\):\\s+(warning|error):\\s+(.+)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "message": 4
+                    }
+                }
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "flash (J-Link)",
+            "type": "shell",
+            "command": "JLink.exe",
+            "args": [
+                "-device",
+                "STM32F427II",
+                "-if",
+                "SWD",
+                "-speed",
+                "4000",
+                "-autoconnect",
+                "1",
+                "-CommanderScript",
+                "${workspaceFolder}\\MDK-ARM\\flash.jlink"
+            ],
+            "dependsOn": ["build (Keil MDK)"],
+            "dependsOrder": "sequence",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "flash (ST-Link via Keil)",
+            "type": "shell",
+            "command": "D:/keil/UV4/UV4.exe",
+            "args": [
+                "-f",
+                "${workspaceFolder}\\MDK-ARM\\RMA-MotorStack.uvprojx",
+                "-j0",
+                "-o",
+                "${workspaceFolder}\\MDK-ARM\\flash.log"
+            ],
+            "dependsOn": ["build (Keil MDK)"],
+            "dependsOrder": "sequence",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "clean (Keil MDK)",
+            "type": "shell",
+            "command": "D:/keil/UV4/UV4.exe",
+            "args": [
+                "-c",
+                "${workspaceFolder}\\MDK-ARM\\RMA-MotorStack.uvprojx",
+                "-j0"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "open in Keil uVision",
+            "type": "shell",
+            "command": "D:/keil/UV4/UV4.exe",
+            "args": [
+                "${workspaceFolder}\\MDK-ARM\\RMA-MotorStack.uvprojx"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "never"
+            }
+        }
+    ]
+}
