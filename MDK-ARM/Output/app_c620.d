@@ -42,6 +42,5 @@
 .\output\app_c620.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h
 .\output\app_c620.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h
 .\output\app_c620.o: ../Core/Inc/can.h
-.\output\app_c620.o: ../Core/Inc/gpio.h
 .\output\app_c620.o: ../BSP/bsp_oled.h
 .\output\app_c620.o: ../Core/Inc/spi.h

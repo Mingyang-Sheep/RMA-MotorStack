@@ -28,6 +28,14 @@
 
 void SystemClock_Config(void);
 
+#define C620_KEY_GPIO_PORT     GPIOA
+#define C620_KEY_PIN           GPIO_PIN_0
+#define C620_KEY_ACTIVE_STATE  GPIO_PIN_SET
+#define C620_KEY_DEBOUNCE_MS   50U
+
+static void C620_Key_Init(void);
+static void C620_Key_Update(void);
+
 /**
   * @brief  The application entry point.
   */
@@ -70,13 +78,57 @@ int main(void)
   oled_refresh_gram();
 
   /* C620 motor control init */
+  C620_Key_Init();
   APP_C620_Init();
+  APP_C620_SetSpeedLevel(C620_SPEED_LEVEL_STOP);
 
   /* Infinite loop */
   while (1)
   {
+    C620_Key_Update();
     APP_C620_Update();
     HAL_Delay(1);  /* 1ms loop for responsive button + CAN TX */
+  }
+}
+
+static void C620_Key_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  GPIO_InitStruct.Pin = C620_KEY_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(C620_KEY_GPIO_PORT, &GPIO_InitStruct);
+}
+
+static void C620_Key_Update(void)
+{
+  static GPIO_PinState stable_state = GPIO_PIN_RESET;
+  static GPIO_PinState last_sample = GPIO_PIN_RESET;
+  static uint32_t last_change_ms = 0U;
+  GPIO_PinState sample = HAL_GPIO_ReadPin(C620_KEY_GPIO_PORT, C620_KEY_PIN);
+  uint32_t now_ms = HAL_GetTick();
+
+  if (sample != last_sample)
+  {
+    last_sample = sample;
+    last_change_ms = now_ms;
+  }
+
+  if ((now_ms - last_change_ms) >= C620_KEY_DEBOUNCE_MS)
+  {
+    if (sample != stable_state)
+    {
+      stable_state = sample;
+
+      if (stable_state == C620_KEY_ACTIVE_STATE)
+      {
+        (void)APP_C620_NextSpeedLevel();
+      }
+    }
   }
 }
 

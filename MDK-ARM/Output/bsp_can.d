@@ -40,5 +40,6 @@
 .\output\bsp_can.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h
 .\output\bsp_can.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h
 .\output\bsp_can.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h
+.\output\bsp_can.o: ../App/app_c620.h
 .\output\bsp_can.o: ../Core/Inc/can.h
 .\output\bsp_can.o: D:\keil\ARM\ARMCC\Bin\..\include\string.h

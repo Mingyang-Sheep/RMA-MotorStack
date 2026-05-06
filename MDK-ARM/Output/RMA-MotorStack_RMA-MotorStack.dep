@@ -1,6 +1,6 @@
 Dependencies for Project 'RMA-MotorStack', Target 'RMA-MotorStack': (DO NOT MODIFY !)
 CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\ARMCC
-F (../Core/Src/main.c)(0x69F708ED)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\main.o --omf_browse .\output\main.crf --depend .\output\main.d)
+F (../Core/Src/main.c)(0x69FAA6FD)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\main.o --omf_browse .\output\main.crf --depend .\output\main.d)
 I (../Core/Inc/main.h)(0x69F6FB64)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x69F6E369)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x69F6E4B4)
@@ -68,7 +68,7 @@ I (D:\keil\ARM\ARMCC\include\stdbool.h)(0x6025237C)
 I (../BSP/bsp_uart.h)(0x69F6E38A)
 I (../BSP/bsp_can.h)(0x69F6F3E1)
 I (../BSP/bsp_oled.h)(0x69F6E394)
-I (../App/app_c620.h)(0x69F708C8)
+I (../App/app_c620.h)(0x69FAA62A)
 F (../Core/Src/stm32f4xx_hal_msp.c)(0x69F6E5A1)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\stm32f4xx_hal_msp.o --omf_browse .\output\stm32f4xx_hal_msp.crf --depend .\output\stm32f4xx_hal_msp.d)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x69F6E369)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x69F6E4B4)
@@ -359,7 +359,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h)(0x69F6E369)
-F (../Core/Src/can.c)(0x69F6E4F1)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\can.o --omf_browse .\output\can.crf --depend .\output\can.d)
+F (../Core/Src/can.c)(0x69FAA697)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\can.o --omf_browse .\output\can.crf --depend .\output\can.d)
 I (../Core/Inc/can.h)(0x69F6E46C)
 I (../Core/Inc/main.h)(0x69F6FB64)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x69F6E369)
@@ -954,7 +954,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h)(0x69F6E369)
-F (../BSP/bsp_can.c)(0x69F6E38A)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\bsp_can.o --omf_browse .\output\bsp_can.crf --depend .\output\bsp_can.d)
+F (../BSP/bsp_can.c)(0x69FAA632)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\bsp_can.o --omf_browse .\output\bsp_can.crf --depend .\output\bsp_can.d)
 I (../BSP/bsp_can.h)(0x69F6F3E1)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x69F6E369)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x69F6E4B4)
@@ -995,6 +995,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h)(0x69F6E369)
+I (../App/app_c620.h)(0x69FAA62A)
 I (../Core/Inc/can.h)(0x69F6E46C)
 I (D:\keil\ARM\ARMCC\include\string.h)(0x6025237E)
 F (../BSP/bsp_oled.c)(0x69F6FB65)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\bsp_oled.o --omf_browse .\output\bsp_oled.crf --depend .\output\bsp_oled.d)
@@ -1313,8 +1314,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h)(0x69F6E369)
 I (../Core/Inc/spi.h)(0x69F6E469)
-F (..\App\app_c620.c)(0x69F708C9)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\app_c620.o --omf_browse .\output\app_c620.crf --depend .\output\app_c620.d)
-I (..\App\app_c620.h)(0x69F708C8)
+F (..\App\app_c620.c)(0x69FAA71C)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\app_c620.o --omf_browse .\output\app_c620.crf --depend .\output\app_c620.d)
+I (..\App\app_c620.h)(0x69FAA62A)
 I (../Core/Inc/main.h)(0x69F6FB64)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x69F6E369)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x69F6E4B4)
@@ -1355,7 +1356,6 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h)(0x69F6E369)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h)(0x69F6E369)
 I (../Core/Inc/can.h)(0x69F6E46C)
-I (../Core/Inc/gpio.h)(0x69F6E468)
 I (../BSP/bsp_oled.h)(0x69F6E394)
 I (../Core/Inc/spi.h)(0x69F6E469)
 F (../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c)(0x69F6E369)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../BSP -I ../App -I ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I ../Middlewares/ST/Third_Party/FatFs/src --C99-I.\RTE\_RMA-MotorStack-ID:\keil\Packs\ARM\CMSIS\6.2.0\CMSIS\Core\Include-ID:\keil\Packs\Keil\STM32F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="536" -D_RTE_ -DSTM32F427xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F427xx-o .\output\stm32f4xx_hal.o --omf_browse .\output\stm32f4xx_hal.crf --depend .\output\stm32f4xx_hal.d)

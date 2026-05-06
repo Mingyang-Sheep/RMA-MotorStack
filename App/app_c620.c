@@ -1,167 +1,413 @@
 /**
   ******************************************************************************
   * @file    app_c620.c
-  * @brief   C620 ESC motor control via CAN bus
+  * @brief   C620 ESC driver for M3508 motors over CAN.
   *
-  *          C620 CAN protocol:
-  *            - CAN ID 0x200 for motors 1-4
-  *            - 8 bytes = 4 x int16_t current (high byte first)
-  *            - Current range: -10000 ~ +10000 (maps to ~ -20A ~ +20A)
+  *          C620 current command:
+  *            StdId 0x200 controls motor ID 1-4.
+  *            Data[0..7] are four signed int16 current commands, big-endian.
   *
-  *          Button (PA0 / WKUP):
-  *            - Short press cycles speed: STOP -> SLOW -> MEDIUM -> FAST -> STOP
+  *          M3508 feedback:
+  *            StdId 0x201-0x204 map to motor ID 1-4.
+  *            Data[0..1] angle, Data[2..3] speed rpm,
+  *            Data[4..5] torque current, Data[6] temperature.
   ******************************************************************************
   */
 #include "app_c620.h"
 #include "can.h"
-#include "gpio.h"
 #include "bsp_oled.h"
 #include <stdio.h>
 
 extern CAN_HandleTypeDef hcan1;
 
-/* Speed level parameters (current value sent to C620) */
-static const int16_t speed_currents[] = {
-    0,      /* STOP   */
-    3000,   /* SLOW   ~6A  */
-    6000,   /* MEDIUM ~12A */
-    9000    /* FAST   ~18A */
-};
-static const char *speed_labels[] = {
-    "STOP", "SLOW", "MEDIUM", "FAST"
-};
+#define C620_CONTROL_PERIOD_MS         10U
+#define C620_DISPLAY_PERIOD_MS         200U
+#define C620_FEEDBACK_TIMEOUT_MS       100U
+#define C620_ENCODER_RANGE             8192
+#define C620_ENCODER_HALF_RANGE        4096
+#define C620_MAX_TARGET_SPEED_RPM      8000
+#define C620_MAX_CURRENT_CMD           10000
+#define C620_PID_INTEGRAL_LIMIT        20000.0f
+#define C620_PID_KP                    1.5f
+#define C620_PID_KI                    0.1f
+#define C620_PID_KD                    0.0f
 
-static uint8_t  speed_level = C620_SPEED_STOP;
-static uint8_t  button_last = 1;       /* Last button state (1 = released) */
-static uint32_t button_debounce = 0;   /* Debounce timer (ms) */
-static uint32_t last_can_tx = 0;       /* Last CAN TX time */
-static uint32_t last_display = 0;      /* Last OLED update time */
-
-/**
-  * @brief  Initialize C620 driver
-  *         - Configure PA0 as GPIO input (button)
-  *         - Display initial state on OLED
-  */
-void APP_C620_Init(void)
+typedef struct
 {
-  GPIO_InitTypeDef GPIO_InitStruct;
+  float integral;
+  float last_error;
+} C620_Pid_t;
 
-  /* Enable GPIOA clock (already enabled by MX_GPIO_Init) */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+static volatile C620_MotorFeedback_t c620_motor[C620_MOTOR_COUNT];
+static C620_Pid_t c620_speed_pid[C620_MOTOR_COUNT];
+static CAN_HandleTypeDef *c620_can = &hcan1;
+static C620_SpeedLevel_t c620_speed_level = C620_SPEED_LEVEL_STOP;
+static uint32_t c620_last_control_ms = 0U;
+static uint32_t c620_last_display_ms = 0U;
 
-  /* Configure PA0 as input with pull-down for button */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+static const int16_t c620_level_speed_rpm[C620_SPEED_LEVEL_COUNT] =
+{
+  0,
+  C620_MEDIUM_SPEED_RPM,
+  C620_FAST_SPEED_RPM
+};
 
-  /* Show initial speed on OLED */
-  oled_clear(Pen_Clear);
-  oled_showstring(0, 0, (uint8_t *)"C620 Motor Ctrl");
-  oled_showstring(2, 0, (uint8_t *)"Speed: STOP");
-  oled_showstring(4, 0, (uint8_t *)"Press KEY (PA0)");
-  oled_showstring(5, 0, (uint8_t *)"to change speed");
-  oled_refresh_gram();
+static const char *c620_level_label[C620_SPEED_LEVEL_COUNT] =
+{
+  "STOP",
+  "MED",
+  "FAST"
+};
+
+static void C620_LimitFloat(float *value, float limit)
+{
+  if (*value > limit)
+  {
+    *value = limit;
+  }
+  else if (*value < -limit)
+  {
+    *value = -limit;
+  }
 }
 
-/**
-  * @brief  Send current command to C620 via CAN
-  */
-static void C620_SendCurrent(int16_t current)
+static int16_t C620_LimitInt16(int16_t value, int16_t limit)
+{
+  if (value > limit)
+  {
+    return limit;
+  }
+  if (value < -limit)
+  {
+    return (int16_t)-limit;
+  }
+  return value;
+}
+
+static uint16_t C620_MakeUint16(uint8_t high, uint8_t low)
+{
+  return (uint16_t)(((uint16_t)high << 8) | (uint16_t)low);
+}
+
+static int16_t C620_MakeInt16(uint8_t high, uint8_t low)
+{
+  return (int16_t)C620_MakeUint16(high, low);
+}
+
+static void C620_ResetPid(uint8_t motor_index)
+{
+  c620_speed_pid[motor_index].integral = 0.0f;
+  c620_speed_pid[motor_index].last_error = 0.0f;
+}
+
+static void C620_ClearFeedback(uint8_t motor_index)
+{
+  c620_motor[motor_index].angle = 0U;
+  c620_motor[motor_index].last_angle = 0U;
+  c620_motor[motor_index].offset_angle = 0U;
+  c620_motor[motor_index].round_count = 0;
+  c620_motor[motor_index].total_angle = 0;
+  c620_motor[motor_index].speed_rpm = 0;
+  c620_motor[motor_index].torque_current = 0;
+  c620_motor[motor_index].temperature = 0U;
+  c620_motor[motor_index].online = 0U;
+  c620_motor[motor_index].msg_count = 0U;
+  c620_motor[motor_index].last_update_ms = 0U;
+  c620_motor[motor_index].target_speed_rpm = 0;
+  c620_motor[motor_index].current_cmd = 0;
+}
+
+static int16_t C620_SpeedPidCalc(uint8_t motor_index, int16_t target_rpm, int16_t speed_rpm)
+{
+  C620_Pid_t *pid = &c620_speed_pid[motor_index];
+  float error = (float)target_rpm - (float)speed_rpm;
+  float output;
+
+  pid->integral += error;
+  C620_LimitFloat(&pid->integral, C620_PID_INTEGRAL_LIMIT);
+
+  output = C620_PID_KP * error
+         + C620_PID_KI * pid->integral
+         + C620_PID_KD * (error - pid->last_error);
+
+  pid->last_error = error;
+  C620_LimitFloat(&output, (float)C620_MAX_CURRENT_CMD);
+
+  return (int16_t)output;
+}
+
+static uint8_t C620_MotorIsOnline(uint8_t motor_index, uint32_t now_ms)
+{
+  uint32_t last_update_ms = c620_motor[motor_index].last_update_ms;
+
+  if (c620_motor[motor_index].msg_count == 0U)
+  {
+    return 0U;
+  }
+
+  return ((now_ms - last_update_ms) <= C620_FEEDBACK_TIMEOUT_MS) ? 1U : 0U;
+}
+
+static HAL_StatusTypeDef C620_SendCurrents(const int16_t current[C620_MOTOR_COUNT])
 {
   CAN_TxHeaderTypeDef tx_header;
   uint8_t tx_data[8];
   uint32_t tx_mailbox;
+  uint8_t i;
 
-  tx_header.StdId = C620_CAN_ID;
-  tx_header.ExtId = 0;
+  if (c620_can == 0)
+  {
+    return HAL_ERROR;
+  }
+
+  if (HAL_CAN_GetTxMailboxesFreeLevel(c620_can) == 0U)
+  {
+    return HAL_BUSY;
+  }
+
+  tx_header.StdId = C620_CAN_TX_ID_MOTOR_1_TO_4;
+  tx_header.ExtId = 0U;
   tx_header.IDE = CAN_ID_STD;
   tx_header.RTR = CAN_RTR_DATA;
-  tx_header.DLC = 8;
+  tx_header.DLC = 8U;
   tx_header.TransmitGlobalTime = DISABLE;
 
-  /* Motor 1 current: high byte first (big-endian) */
-  tx_data[0] = (uint8_t)(current >> 8);
-  tx_data[1] = (uint8_t)(current & 0xFF);
-  /* Motor 2-4: zero current */
-  tx_data[2] = 0;
-  tx_data[3] = 0;
-  tx_data[4] = 0;
-  tx_data[5] = 0;
-  tx_data[6] = 0;
-  tx_data[7] = 0;
+  for (i = 0U; i < C620_MOTOR_COUNT; i++)
+  {
+    int16_t limited_current = C620_LimitInt16(current[i], C620_MAX_CURRENT_CMD);
+    tx_data[i * 2U] = (uint8_t)(limited_current >> 8);
+    tx_data[i * 2U + 1U] = (uint8_t)limited_current;
+  }
 
-  HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data, &tx_mailbox);
+  return HAL_CAN_AddTxMessage(c620_can, &tx_header, tx_data, &tx_mailbox);
 }
 
-/**
-  * @brief  Read button with debounce, update speed level
-  *         Returns 1 if speed changed
-  */
-static uint8_t C620_ButtonCheck(uint32_t now_ms)
+static void C620_UpdateDisplay(void)
 {
-  uint8_t raw = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+  char line[32];
+  C620_MotorFeedback_t motor = APP_C620_GetMotorFeedback(1U);
 
-  /* Button pressed: active high, debounce 50ms */
-  if (raw == 1 && button_last == 0 && (now_ms - button_debounce) > 50)
-  {
-    button_debounce = now_ms;
-    button_last = 1;
+  oled_showstring(0, 0, (uint8_t *)"C620 M3508 CAN");
 
-    /* Cycle speed level */
-    speed_level++;
-    if (speed_level > C620_SPEED_FAST)
-    {
-      speed_level = C620_SPEED_STOP;
-    }
-    return 1;
-  }
+  sprintf(line, "Level:%-4s        ", c620_level_label[c620_speed_level]);
+  oled_showstring(1, 0, (uint8_t *)line);
 
-  if (raw == 0)
-  {
-    button_last = 0;
-  }
+  sprintf(line, "Tar:%5d rpm     ", (int)motor.target_speed_rpm);
+  oled_showstring(2, 0, (uint8_t *)line);
 
-  return 0;
+  sprintf(line, "Fdb:%5d rpm     ", (int)motor.speed_rpm);
+  oled_showstring(3, 0, (uint8_t *)line);
+
+  sprintf(line, "Cur:%6d        ", (int)motor.current_cmd);
+  oled_showstring(4, 0, (uint8_t *)line);
+
+  sprintf(line, "Tmp:%3u %s      ", (unsigned int)motor.temperature,
+          motor.online ? "ON " : "OFF");
+  oled_showstring(5, 0, (uint8_t *)line);
+
+  oled_refresh_gram();
 }
 
-/**
-  * @brief  Main update function: check button, send CAN, update display
-  *         Call periodically from main loop (every 5-10ms)
-  */
+void APP_C620_Init(void)
+{
+  uint8_t i;
+
+  for (i = 0U; i < C620_MOTOR_COUNT; i++)
+  {
+    C620_ClearFeedback(i);
+    C620_ResetPid(i);
+  }
+
+  c620_can = &hcan1;
+  c620_speed_level = C620_SPEED_LEVEL_STOP;
+  c620_last_control_ms = HAL_GetTick();
+  c620_last_display_ms = HAL_GetTick();
+
+  oled_clear(Pen_Clear);
+  C620_UpdateDisplay();
+}
+
+void APP_C620_SetMotorSpeed(uint8_t motor_id, int16_t speed_rpm)
+{
+  uint8_t motor_index;
+
+  if ((motor_id == 0U) || (motor_id > C620_MOTOR_COUNT))
+  {
+    return;
+  }
+
+  motor_index = (uint8_t)(motor_id - 1U);
+  c620_motor[motor_index].target_speed_rpm =
+    C620_LimitInt16(speed_rpm, C620_MAX_TARGET_SPEED_RPM);
+
+  if (speed_rpm == 0)
+  {
+    C620_ResetPid(motor_index);
+  }
+}
+
+void APP_C620_SetSpeedLevel(C620_SpeedLevel_t level)
+{
+  if (level >= C620_SPEED_LEVEL_COUNT)
+  {
+    level = C620_SPEED_LEVEL_STOP;
+  }
+
+  c620_speed_level = level;
+  APP_C620_SetMotorSpeed(1U, c620_level_speed_rpm[level]);
+}
+
+C620_SpeedLevel_t APP_C620_GetSpeedLevel(void)
+{
+  return c620_speed_level;
+}
+
+C620_SpeedLevel_t APP_C620_NextSpeedLevel(void)
+{
+  C620_SpeedLevel_t next_level = (C620_SpeedLevel_t)(c620_speed_level + 1U);
+
+  if (next_level >= C620_SPEED_LEVEL_COUNT)
+  {
+    next_level = C620_SPEED_LEVEL_STOP;
+  }
+
+  APP_C620_SetSpeedLevel(next_level);
+  return next_level;
+}
+
+C620_MotorFeedback_t APP_C620_GetMotorFeedback(uint8_t motor_id)
+{
+  C620_MotorFeedback_t copy = {0};
+  uint8_t motor_index;
+
+  if ((motor_id == 0U) || (motor_id > C620_MOTOR_COUNT))
+  {
+    return copy;
+  }
+
+  motor_index = (uint8_t)(motor_id - 1U);
+  copy.angle = c620_motor[motor_index].angle;
+  copy.last_angle = c620_motor[motor_index].last_angle;
+  copy.offset_angle = c620_motor[motor_index].offset_angle;
+  copy.round_count = c620_motor[motor_index].round_count;
+  copy.total_angle = c620_motor[motor_index].total_angle;
+  copy.speed_rpm = c620_motor[motor_index].speed_rpm;
+  copy.torque_current = c620_motor[motor_index].torque_current;
+  copy.temperature = c620_motor[motor_index].temperature;
+  copy.online = c620_motor[motor_index].online;
+  copy.msg_count = c620_motor[motor_index].msg_count;
+  copy.last_update_ms = c620_motor[motor_index].last_update_ms;
+  copy.target_speed_rpm = c620_motor[motor_index].target_speed_rpm;
+  copy.current_cmd = c620_motor[motor_index].current_cmd;
+
+  return copy;
+}
+
+uint8_t APP_C620_ProcessCanRx(CAN_HandleTypeDef *hcan,
+                              const CAN_RxHeaderTypeDef *rx_header,
+                              const uint8_t rx_data[8])
+{
+  uint8_t motor_index;
+  uint16_t angle;
+  int32_t delta_angle;
+
+  if ((rx_header == 0) || (rx_data == 0))
+  {
+    return 0U;
+  }
+
+  if ((rx_header->IDE != CAN_ID_STD) || (rx_header->RTR != CAN_RTR_DATA))
+  {
+    return 0U;
+  }
+
+  if ((rx_header->StdId < C620_CAN_RX_ID_MOTOR_1) ||
+      (rx_header->StdId > C620_CAN_RX_ID_MOTOR_4))
+  {
+    return 0U;
+  }
+
+  if (rx_header->DLC < 7U)
+  {
+    return 1U;
+  }
+
+  c620_can = hcan;
+  motor_index = (uint8_t)(rx_header->StdId - C620_CAN_RX_ID_MOTOR_1);
+  angle = C620_MakeUint16(rx_data[0], rx_data[1]);
+
+  if (c620_motor[motor_index].msg_count == 0U)
+  {
+    c620_motor[motor_index].offset_angle = angle;
+    c620_motor[motor_index].last_angle = angle;
+    c620_motor[motor_index].round_count = 0;
+  }
+  else
+  {
+    delta_angle = (int32_t)angle - (int32_t)c620_motor[motor_index].angle;
+    c620_motor[motor_index].last_angle = c620_motor[motor_index].angle;
+
+    if (delta_angle > C620_ENCODER_HALF_RANGE)
+    {
+      c620_motor[motor_index].round_count--;
+    }
+    else if (delta_angle < -C620_ENCODER_HALF_RANGE)
+    {
+      c620_motor[motor_index].round_count++;
+    }
+  }
+
+  c620_motor[motor_index].angle = angle;
+  c620_motor[motor_index].speed_rpm = C620_MakeInt16(rx_data[2], rx_data[3]);
+  c620_motor[motor_index].torque_current = C620_MakeInt16(rx_data[4], rx_data[5]);
+  c620_motor[motor_index].temperature = rx_data[6];
+  c620_motor[motor_index].total_angle =
+    c620_motor[motor_index].round_count * C620_ENCODER_RANGE
+    + (int32_t)c620_motor[motor_index].angle
+    - (int32_t)c620_motor[motor_index].offset_angle;
+  c620_motor[motor_index].last_update_ms = HAL_GetTick();
+  c620_motor[motor_index].online = 1U;
+  c620_motor[motor_index].msg_count++;
+
+  return 1U;
+}
+
 void APP_C620_Update(void)
 {
-  uint32_t now = HAL_GetTick();
+  uint32_t now_ms = HAL_GetTick();
+  int16_t current[C620_MOTOR_COUNT] = {0};
+  uint8_t i;
 
-  /* Check button every cycle */
-  if (C620_ButtonCheck(now))
+  if ((now_ms - c620_last_control_ms) >= C620_CONTROL_PERIOD_MS)
   {
-    /* Stop motor transmission when speed is STOP */
-    if (speed_level == C620_SPEED_STOP)
+    c620_last_control_ms = now_ms;
+
+    for (i = 0U; i < C620_MOTOR_COUNT; i++)
     {
-      C620_SendCurrent(0);
+      int16_t target_rpm = c620_motor[i].target_speed_rpm;
+      uint8_t online = C620_MotorIsOnline(i, now_ms);
+
+      c620_motor[i].online = online;
+
+      if ((target_rpm == 0) || (online == 0U))
+      {
+        current[i] = 0;
+        C620_ResetPid(i);
+      }
+      else
+      {
+        current[i] = C620_SpeedPidCalc(i, target_rpm, c620_motor[i].speed_rpm);
+      }
+
+      c620_motor[i].current_cmd = current[i];
     }
+
+    (void)C620_SendCurrents(current);
   }
 
-  /* Send CAN command every 5ms (200Hz control rate) */
-  if (speed_level != C620_SPEED_STOP && (now - last_can_tx) >= 5)
+  if ((now_ms - c620_last_display_ms) >= C620_DISPLAY_PERIOD_MS)
   {
-    C620_SendCurrent(speed_currents[speed_level]);
-    last_can_tx = now;
-  }
-
-  /* Update OLED display every 200ms */
-  if ((now - last_display) >= 200)
-  {
-    last_display = now;
-
-    char buf[32];
-    sprintf(buf, "Speed: %-6s", speed_labels[speed_level]);
-    oled_showstring(2, 0, (uint8_t *)buf);
-
-    sprintf(buf, "Cur:   %-6d", (int)speed_currents[speed_level]);
-    oled_showstring(3, 0, (uint8_t *)buf);
-
-    oled_refresh_gram();
+    c620_last_display_ms = now_ms;
+    C620_UpdateDisplay();
   }
 }

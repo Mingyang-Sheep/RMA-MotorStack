@@ -9,6 +9,7 @@
  */
 
 #include "bsp_can.h"
+#include "app_c620.h"
 #include "can.h"
 #include "string.h"
 #include "stm32f4xx_hal.h"
@@ -87,7 +88,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     Error_Handler();
   }
 	
-	if (RxHeader.StdId != UWB_CAN_RX_ID)
+	if (APP_C620_ProcessCanRx(hcan, &RxHeader, RxData) != 0U)
+	{
+		return;
+	}
+
+	if (RxHeader.StdId == UWB_CAN_RX_ID)
 	{
 		uint8_t index = 0;
 		static uint8_t *p = (uint8_t *)&uwb_rx_data_buf;
@@ -120,7 +126,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	}
 	
 }
-
 
 
 
